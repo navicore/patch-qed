@@ -1,0 +1,87 @@
+// Example 2: Business rules engine
+// Demonstrates: Multiple ADTs, business logic, explainable decisions
+
+type Employee = employee(
+    id: Int,
+    name: String,
+    salary: Int,
+    years_service: Int
+)
+
+type Department = dept(name: String, budget: Int)
+
+type Level =
+    | Junior
+    | Senior
+    | Manager
+    | Executive
+
+// Relations
+rel works_in: Employee × Department
+rel reports_to: Employee × Employee
+rel classification: Employee × Level
+rel eligible_for_bonus: Employee × Int      // employee, bonus amount
+rel over_budget: Department
+
+// Facts
+works_in(employee(1, "Alice", 80000, 8), dept("Engineering", 500000)).
+works_in(employee(2, "Bob", 120000, 12), dept("Engineering", 500000)).
+works_in(employee(3, "Carol", 95000, 5), dept("Sales", 300000)).
+works_in(employee(4, "David", 60000, 2), dept("Sales", 300000)).
+
+reports_to(employee(4, "David", 60000, 2), employee(3, "Carol", 95000, 5)).
+reports_to(employee(3, "Carol", 95000, 5), employee(2, "Bob", 120000, 12)).
+
+// Rules - business logic with explainability
+
+// Classification rules
+classification(employee(_, _, Sal, Years), Junior) :-
+    Sal < 70000,
+    Years < 3.
+
+classification(employee(_, _, Sal, Years), Senior) :-
+    Sal >= 70000,
+    Sal < 100000,
+    Years >= 3.
+
+classification(employee(_, _, Sal, Years), Manager) :-
+    Sal >= 100000,
+    Years >= 5.
+
+classification(employee(_, _, Sal, Years), Executive) :-
+    Sal >= 150000,
+    Years >= 10.
+
+// Bonus eligibility - complex business rules
+eligible_for_bonus(Emp, Bonus) :-
+    classification(Emp, Senior),
+    employee(_, _, Sal, Years) = Emp,
+    Years >= 5,
+    Bonus = Sal / 10.
+
+eligible_for_bonus(Emp, Bonus) :-
+    classification(Emp, Manager),
+    employee(_, _, Sal, _) = Emp,
+    Bonus = Sal / 5.
+
+eligible_for_bonus(Emp, Bonus) :-
+    classification(Emp, Executive),
+    employee(_, _, Sal, _) = Emp,
+    Bonus = Sal / 3.
+
+// Department budget checking
+over_budget(Dept) :-
+    works_in(employee(_, _, Sal1, _), Dept),
+    works_in(employee(_, _, Sal2, _), Dept),
+    dept(_, Budget) = Dept,
+    Sal1 + Sal2 > Budget.
+
+// Query examples:
+// ?- eligible_for_bonus(employee(2, "Bob", 120000, 12), B).
+// Expected: Yes, B = 24000
+// Explanation: "Bob is eligible for a bonus of 24000 because:
+//   1. Bob is classified as Manager (salary >= 100000, years >= 5)
+//   2. Manager bonus is salary / 5 = 120000 / 5 = 24000"
+//
+// ?- over_budget(dept("Engineering", 500000)).
+// Expected: Yes/No with explanation of salary sum vs budget

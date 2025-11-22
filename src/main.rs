@@ -1,0 +1,129 @@
+mod ast;
+mod parser;
+mod types;
+mod ir;
+mod codegen;
+mod runtime;
+
+use anyhow::Result;
+use clap::{Parser, Subcommand};
+use std::path::PathBuf;
+
+#[derive(Parser)]
+#[command(name = "leemc")]
+#[command(about = "The leem logic programming language compiler", long_about = None)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Compile a leem program to native code
+    Compile {
+        /// Input .leem file
+        input: PathBuf,
+
+        /// Output binary path
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+
+        /// Emit LLVM IR instead of binary
+        #[arg(long)]
+        emit_llvm: bool,
+
+        /// Optimization level (0-3)
+        #[arg(short = 'O', default_value = "2")]
+        opt_level: u8,
+    },
+
+    /// Type-check a leem program without compiling
+    Check {
+        /// Input .leem file
+        input: PathBuf,
+    },
+
+    /// Show proof tree for a query
+    Explain {
+        /// Input .leem file
+        input: PathBuf,
+
+        /// Query to explain
+        query: String,
+    },
+
+    /// Start interactive REPL
+    Repl {
+        /// Optional program to load
+        input: Option<PathBuf>,
+    },
+}
+
+fn main() -> Result<()> {
+    let cli = Cli::parse();
+
+    match cli.command {
+        Commands::Compile {
+            input,
+            output,
+            emit_llvm,
+            opt_level,
+        } => {
+            println!("Compiling {:?}...", input);
+            compile_program(&input, output.as_ref(), emit_llvm, opt_level)?;
+        }
+        Commands::Check { input } => {
+            println!("Checking {:?}...", input);
+            check_program(&input)?;
+        }
+        Commands::Explain { input, query } => {
+            println!("Explaining query '{}' in {:?}...", query, input);
+            explain_query(&input, &query)?;
+        }
+        Commands::Repl { input } => {
+            println!("Starting REPL...");
+            start_repl(input.as_ref())?;
+        }
+    }
+
+    Ok(())
+}
+
+fn compile_program(
+    input: &PathBuf,
+    output: Option<&PathBuf>,
+    emit_llvm: bool,
+    opt_level: u8,
+) -> Result<()> {
+    // TODO: Implement compilation pipeline
+    println!("Compilation not yet implemented");
+    println!("  Input: {:?}", input);
+    println!("  Output: {:?}", output);
+    println!("  Emit LLVM: {}", emit_llvm);
+    println!("  Opt level: {}", opt_level);
+    Ok(())
+}
+
+fn check_program(input: &PathBuf) -> Result<()> {
+    // TODO: Implement type checking
+    println!("Type checking not yet implemented");
+    println!("  Input: {:?}", input);
+    Ok(())
+}
+
+fn explain_query(input: &PathBuf, query: &str) -> Result<()> {
+    // TODO: Implement query explanation
+    println!("Query explanation not yet implemented");
+    println!("  Input: {:?}", input);
+    println!("  Query: {}", query);
+    Ok(())
+}
+
+fn start_repl(input: Option<&PathBuf>) -> Result<()> {
+    // TODO: Implement REPL
+    println!("REPL not yet implemented");
+    if let Some(path) = input {
+        println!("  Loading: {:?}", path);
+    }
+    Ok(())
+}

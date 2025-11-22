@@ -1,0 +1,35 @@
+// Example 1: Family relationships with types
+// Demonstrates: ADTs, recursive rules, explainability
+
+type Person = person(name: String, birth_year: Int)
+
+// Relations define the schema for facts and rules
+rel parent: Person × Person              // parent(Parent, Child)
+rel ancestor: Person × Person
+rel sibling: Person × Person
+rel age_difference: Person × Person × Int
+
+// Facts - base data
+parent(person("Alice", 1950), person("Bob", 1975)).
+parent(person("Alice", 1950), person("Carol", 1978)).
+parent(person("Bob", 1975), person("David", 2000)).
+parent(person("Bob", 1975), person("Eve", 2003)).
+
+// Rules - logical inference
+ancestor(X, Y) :- parent(X, Y).
+ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
+
+sibling(X, Y) :-
+    parent(P, X),
+    parent(P, Y),
+    X != Y.
+
+age_difference(person(_, Y1), person(_, Y2), Diff) :-
+    Diff = Y1 - Y2.
+
+// Query examples (would be in a separate query file or REPL):
+// ?- ancestor(person("Alice", 1950), person("David", 2000)).
+// Expected: Yes, with proof tree showing: Alice -> Bob -> David
+//
+// ?- ancestor(A, person("Eve", 2003)).
+// Expected: A = Alice, Bob (with explanations for each)

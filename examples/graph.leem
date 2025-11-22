@@ -1,0 +1,54 @@
+// Example 3: Graph traversal and pathfinding
+// Demonstrates: Graphs, path finding, weighted edges, optimization
+
+type Node = node(id: String)
+type Path = path(nodes: List<Node>, cost: Int)
+
+// Relations
+rel edge: Node × Node × Int                 // from, to, weight
+rel connected: Node × Node
+rel path_exists: Node × Node × Int          // from, to, total_cost
+rel shortest_path: Node × Node × Path
+
+// Facts - a simple road network
+edge(node("A"), node("B"), 5).
+edge(node("A"), node("C"), 3).
+edge(node("B"), node("D"), 2).
+edge(node("C"), node("D"), 6).
+edge(node("C"), node("E"), 4).
+edge(node("D"), node("E"), 1).
+edge(node("E"), node("F"), 3).
+
+// Rules
+
+// Undirected connectivity
+connected(X, Y) :- edge(X, Y, _).
+connected(X, Y) :- edge(Y, X, _).
+
+// Path existence with cost
+path_exists(X, Y, Cost) :- edge(X, Y, Cost).
+path_exists(X, Y, Cost) :- edge(Y, X, Cost).
+
+path_exists(X, Z, TotalCost) :-
+    edge(X, Y, Cost1),
+    path_exists(Y, Z, Cost2),
+    X != Z,
+    TotalCost = Cost1 + Cost2.
+
+// Note: shortest_path would require aggregation/minimization
+// This is a design question - how do we handle "find minimum" queries?
+// Options:
+//   1. Built-in aggregate functions
+//   2. Mode annotations that specify we want all solutions then pick min
+//   3. Special syntax for optimization queries
+
+// Query examples:
+// ?- path_exists(node("A"), node("F"), Cost).
+// Expected: Multiple solutions with different costs
+// Explanation shows each path: A->B->D->E->F (11), A->C->E->F (10), etc.
+//
+// ?- shortest_path(node("A"), node("F"), P).
+// Expected: One solution with minimal cost path
+// Explanation: "Shortest path from A to F is A->C->E->F with cost 10 because:
+//   - Evaluated paths: A->B->D->E->F (11), A->C->E->F (10), A->C->D->E->F (14)
+//   - Minimum cost is 10"

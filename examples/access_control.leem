@@ -1,0 +1,99 @@
+// Example 4: Access control and authorization
+// Demonstrates: Security rules, role-based access, explainable decisions
+// This is a killer app for leem - auditable, explainable authorization!
+
+type User = user(id: String, name: String)
+type Resource = resource(id: String, owner: User, sensitivity: Level)
+type Action = Read | Write | Delete | Admin
+type Role = Employee | Manager | Admin | SecurityOfficer
+
+type Level =
+    | Public
+    | Internal
+    | Confidential
+    | Secret
+
+// Relations
+rel has_role: User × Role
+rel can_access: User × Resource × Action
+rel same_department: User × User
+rel delegates: User × User × Resource     // delegator, delegate, resource
+
+// Facts - organizational structure
+has_role(user("alice", "Alice"), Employee).
+has_role(user("alice", "Alice"), Manager).
+has_role(user("bob", "Bob"), Employee).
+has_role(user("carol", "Carol"), Admin).
+has_role(user("dave", "Dave"), SecurityOfficer).
+
+same_department(user("alice", "Alice"), user("bob", "Bob")).
+
+delegates(
+    user("alice", "Alice"),
+    user("bob", "Bob"),
+    resource("doc1", user("alice", "Alice"), Internal)
+).
+
+// Authorization rules - the core of the system
+
+// 1. Owners can do anything with their resources
+can_access(User, Res, _) :-
+    resource(_, User, _) = Res.
+
+// 2. Admins can do anything
+can_access(User, _, _) :-
+    has_role(User, Admin).
+
+// 3. Public resources can be read by anyone
+can_access(_, Res, Read) :-
+    resource(_, _, Public) = Res.
+
+// 4. Internal resources can be read by employees
+can_access(User, Res, Read) :-
+    has_role(User, Employee),
+    resource(_, _, Internal) = Res.
+
+// 5. Managers can read confidential in their department
+can_access(User, Res, Read) :-
+    has_role(User, Manager),
+    resource(_, Owner, Confidential) = Res,
+    same_department(User, Owner).
+
+// 6. Security officers can read anything but not write
+can_access(User, _, Read) :-
+    has_role(User, SecurityOfficer).
+
+// 7. Delegation allows temporary access
+can_access(Delegate, Res, Action) :-
+    delegates(_, Delegate, Res),
+    Action != Delete.  // Can't delegate delete rights
+
+// 8. Managers can write to internal resources in their dept
+can_access(User, Res, Write) :-
+    has_role(User, Manager),
+    resource(_, Owner, Internal) = Res,
+    same_department(User, Owner).
+
+// Query examples:
+// ?- can_access(user("bob", "Bob"), resource("doc1", user("alice", "Alice"), Internal), Read).
+// Expected: Yes
+// Explanation: "Bob can Read doc1 because:
+//   1. Bob has role Employee
+//   2. doc1 has sensitivity Internal
+//   3. Rule: Internal resources can be read by employees"
+//
+// Alternative explanation path:
+// "Bob can Read doc1 because:
+//   1. Alice delegates access to Bob for doc1
+//   2. Delegation allows Read and Write (but not Delete)"
+//
+// ?- can_access(user("bob", "Bob"), resource("secret", user("alice", "Alice"), Secret), Read).
+// Expected: No
+// Explanation: "Bob cannot Read secret because:
+//   - Bob has roles: Employee
+//   - secret has sensitivity: Secret
+//   - No applicable rules:
+//     ✗ Not owner (owner is Alice)
+//     ✗ Not Admin
+//     ✗ Not Public resource
+//     ✗ Secret requires SecurityOfficer or Admin"
