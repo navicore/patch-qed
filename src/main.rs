@@ -10,8 +10,8 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 #[derive(Parser)]
-#[command(name = "leemc")]
-#[command(about = "The leem logic programming language compiler", long_about = None)]
+#[command(name = "qedc")]
+#[command(about = "The qed logic programming language compiler", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -19,9 +19,9 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Compile a leem program to native code
+    /// Compile a qed program to native code
     Compile {
-        /// Input .leem file
+        /// Input .qed file
         input: PathBuf,
 
         /// Output binary path
@@ -37,15 +37,15 @@ enum Commands {
         opt_level: u8,
     },
 
-    /// Type-check a leem program without compiling
+    /// Type-check a qed program without compiling
     Check {
-        /// Input .leem file
+        /// Input .qed file
         input: PathBuf,
     },
 
     /// Show proof tree for a query
     Explain {
-        /// Input .leem file
+        /// Input .qed file
         input: PathBuf,
 
         /// Query to explain

@@ -1,6 +1,6 @@
-/// Abstract Syntax Tree definitions for leem
+/// Abstract Syntax Tree definitions for qed
 ///
-/// This module defines the AST representation of leem programs after parsing.
+/// This module defines the AST representation of qed programs after parsing.
 
 use std::fmt;
 
@@ -11,13 +11,13 @@ pub struct Span {
     pub end: usize,
 }
 
-/// A complete leem program
+/// A complete qed program
 #[derive(Debug, Clone)]
 pub struct Program {
     pub items: Vec<Item>,
 }
 
-/// Top-level items in a leem program
+/// Top-level items in a qed program
 #[derive(Debug, Clone)]
 pub enum Item {
     TypeDef(TypeDef),

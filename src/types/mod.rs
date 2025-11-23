@@ -1,4 +1,4 @@
-/// Type checking and inference for leem
+/// Type checking and inference for qed
 ///
 /// This module implements:
 /// - Type environment management
@@ -86,7 +86,7 @@ impl TypeEnv {
     }
 }
 
-/// Type checker for leem programs
+/// Type checker for qed programs
 pub struct TypeChecker {
     env: TypeEnv,
 }

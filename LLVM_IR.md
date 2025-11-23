@@ -1,10 +1,10 @@
 # LLVM IR Compilation Example
 
-This document shows how a simple leem program compiles to LLVM IR.
+This document shows how a simple qed program compiles to LLVM IR.
 
 ## Source Program
 
-```leem
+```qed
 type Person = person(name: String, age: Int)
 
 rel parent: Person × Person

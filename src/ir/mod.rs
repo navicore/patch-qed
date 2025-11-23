@@ -1,4 +1,4 @@
-/// Intermediate Representation for leem
+/// Intermediate Representation for qed
 ///
 /// This module defines the IR between the type-checked AST and LLVM IR.
 /// The IR makes explicit:
@@ -10,7 +10,7 @@
 use crate::ast::Type;
 use std::collections::HashMap;
 
-/// A compiled leem program in IR form
+/// A compiled qed program in IR form
 #[derive(Debug, Clone)]
 pub struct IrProgram {
     pub types: Vec<IrTypeDef>,

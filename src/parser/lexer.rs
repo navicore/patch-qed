@@ -1,4 +1,4 @@
-/// Lexer for leem using logos
+/// Lexer for qed using logos
 ///
 /// Converts source text into tokens.
 

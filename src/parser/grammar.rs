@@ -1,6 +1,6 @@
 /// Grammar definitions using chumsky parser combinators
 ///
-/// This module contains the parser implementation for leem syntax.
+/// This module contains the parser implementation for qed syntax.
 
 use crate::ast::*;
 use super::lexer::Token;

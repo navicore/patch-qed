@@ -1,10 +1,10 @@
-# leem Language Design
+# qed Language Design
 
-**leem**: A typed logic programming language that compiles to fast, native code via LLVM.
+**qed**: A typed logic programming language that compiles to fast, native code via LLVM.
 
 ## Vision
 
-leem is a logic programming language designed for building explainable rules engines and fact-based systems. Unlike traditional Prolog:
+qed is a logic programming language designed for building explainable rules engines and fact-based systems. Unlike traditional Prolog:
 - **Statically typed** with algebraic data types
 - **Compiles to native code** via LLVM (no GC, no interpreter overhead)
 - **Built for explainability** - proof trees to human-readable justifications
@@ -21,9 +21,9 @@ leem is a logic programming language designed for building explainable rules eng
 
 ### Algebraic Data Types
 
-leem supports product types (structs) and sum types (enums):
+qed supports product types (structs) and sum types (enums):
 
-```leem
+```qed
 // Product type (struct-like)
 type Person = person(name: String, age: Int)
 
@@ -52,7 +52,7 @@ type Employee = employee(
 
 ### Type Inference
 
-leem uses bidirectional type inference:
+qed uses bidirectional type inference:
 - Relation signatures must be declared
 - Variable types are inferred from usage
 - Function-like expressions are checked against expected types
@@ -63,7 +63,7 @@ leem uses bidirectional type inference:
 
 Relations define the schema for facts and rules:
 
-```leem
+```qed
 rel parent: Person × Person              // Binary relation
 rel age: Person × Int                    // Person to Int
 rel works_in: Employee × Department      // Multi-type relation
@@ -73,7 +73,7 @@ rel works_in: Employee × Department      // Multi-type relation
 
 Facts are ground instances of relations (no variables):
 
-```leem
+```qed
 parent(person("Alice", 45), person("Bob", 20)).
 age(person("Alice", 45), 45).
 ```
@@ -84,7 +84,7 @@ age(person("Alice", 45), 45).
 
 Rules define logical inference:
 
-```leem
+```qed
 // Simple rule
 ancestor(X, Y) :- parent(X, Y).
 
@@ -102,7 +102,7 @@ sibling(X, Y) :-
 
 Destructure ADTs in rule heads and bodies:
 
-```leem
+```qed
 // Match structure in rule body
 eligible_for_bonus(Emp, Bonus) :-
     employee(Id, Name, Years) = Emp,
@@ -117,9 +117,9 @@ classification(employee(_, _, Sal, Years), Senior) :-
 
 ### Expressions
 
-leem supports limited expressions in rule bodies:
+qed supports limited expressions in rule bodies:
 
-```leem
+```qed
 age_difference(person(_, Y1), person(_, Y2), Diff) :-
     Diff = Y1 - Y2.
 
@@ -138,7 +138,7 @@ Supported operators:
 
 ### Hybrid Approach
 
-leem uses a **hybrid evaluation strategy**:
+qed uses a **hybrid evaluation strategy**:
 
 1. **Tabled/Memoized** for recursive rules
    - Bottom-up evaluation for stratified rules
@@ -205,7 +205,7 @@ Bob cannot access secret_document because:
 
 ## Syntax Summary
 
-```leem
+```qed
 // Type definitions
 type TypeName = constructor(field: Type, ...)
 type EnumName = | Variant1 | Variant2 | ...
@@ -243,7 +243,7 @@ How should we handle negation?
 
 How to handle `count`, `sum`, `min`, `max`?
 
-```leem
+```qed
 // Option 1: Built-in aggregate syntax
 total_salary(Dept, Sum) :-
     sum(Sal : works_in(employee(_, _, Sal, _), Dept), Sum).
@@ -262,7 +262,7 @@ total_salary(Dept, Sum) :- aggregate_sum(employee_salary(Dept), Sum).
 
 Should modes be explicit or inferred?
 
-```leem
+```qed
 // Explicit modes (Mercury style)
 :- mode ancestor(in, out).
 :- mode ancestor(in, in).
@@ -276,7 +276,7 @@ Should modes be explicit or inferred?
 
 How should list operations work?
 
-```leem
+```qed
 // Pattern matching on lists
 rel length: List<T> × Int
 length([], 0).
@@ -293,7 +293,7 @@ length(L, N) :- N = builtin_length(L).
 
 How to organize large programs?
 
-```leem
+```qed
 module authorization {
     export can_access/3
     export has_role/2
@@ -310,7 +310,7 @@ module authorization {
 ## Compilation Pipeline
 
 ```
-Source (.leem)
+Source (.qed)
     ↓
   Lexer/Parser
     ↓
@@ -322,7 +322,7 @@ Source (.leem)
     ↓
   Mode Analysis
     ↓
-  IR Generation (leem IR)
+  IR Generation (qed IR)
     ↓
   Optimization
     ↓
@@ -335,7 +335,7 @@ Source (.leem)
 
 ### Intermediate Representation
 
-leem will have its own IR before LLVM:
+qed will have its own IR before LLVM:
 - Explicit unification operations
 - Tabled predicates marked
 - Mode information attached
@@ -356,29 +356,29 @@ See `LLVM_IR.md` for a worked example of compiling a simple rule to LLVM IR.
 
 Interactive query interface:
 ```
-leem> ?- parent(alice, X).
+qed> ?- parent(alice, X).
 X = bob
 X = carol
 
-leem> :explain
-parent(alice, bob) [fact at family.leem:12]
+qed> :explain
+parent(alice, bob) [fact at family.qed:12]
 ```
 
 ### Compiler
 
 ```bash
-leemc compile program.leem -o program
-leemc check program.leem           # Type check only
-leemc explain program.leem query   # Show proof tree for query
+qedc compile program.qed -o program
+qedc check program.qed           # Type check only
+qedc explain program.qed query   # Show proof tree for query
 ```
 
 ### Integration
 
 ```rust
-// Embed leem in Rust programs (future)
-use leem::Program;
+// Embed qed in Rust programs (future)
+use qed::Program;
 
-let prog = Program::load("rules.leem")?;
+let prog = Program::load("rules.qed")?;
 let result = prog.query("can_access(user1, resource1, Read)")?;
 if result.success {
     println!("Allowed: {}", result.explain());
@@ -389,7 +389,7 @@ if result.success {
 
 ## Comparison to Other Languages
 
-| Feature | Prolog | Datalog | Mercury | leem |
+| Feature | Prolog | Datalog | Mercury | qed |
 |---------|--------|---------|---------|------|
 | Type System | Dynamic | Dynamic | Static (complex) | Static (ADTs) |
 | Compilation | Interpreted/WAM | Interpreted | Native | Native (LLVM) |

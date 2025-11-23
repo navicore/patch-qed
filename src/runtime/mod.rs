@@ -1,7 +1,7 @@
-/// Runtime support for compiled leem programs
+/// Runtime support for compiled qed programs
 ///
 /// This module contains runtime data structures and functions that
-/// compiled leem programs link against.
+/// compiled qed programs link against.
 
 use std::alloc::{alloc, dealloc, Layout};
 use std::collections::HashMap;
@@ -185,38 +185,38 @@ impl Drop for Table {
 // C-compatible exports for LLVM-generated code
 
 #[no_mangle]
-pub extern "C" fn leem_arena_new(capacity: usize) -> *mut Arena {
+pub extern "C" fn qed_arena_new(capacity: usize) -> *mut Arena {
     Box::into_raw(Box::new(Arena::new(capacity)))
 }
 
 #[no_mangle]
-pub extern "C" fn leem_arena_free(arena: *mut Arena) {
+pub extern "C" fn qed_arena_free(arena: *mut Arena) {
     if !arena.is_null() {
         unsafe { drop(Box::from_raw(arena)) };
     }
 }
 
 #[no_mangle]
-pub extern "C" fn leem_arena_alloc(arena: *mut Arena, size: usize, align: usize) -> *mut u8 {
+pub extern "C" fn qed_arena_alloc(arena: *mut Arena, size: usize, align: usize) -> *mut u8 {
     unsafe {
         (*arena).allocate(size, align)
     }
 }
 
 #[no_mangle]
-pub extern "C" fn leem_table_new(bucket_count: usize) -> *mut Table {
+pub extern "C" fn qed_table_new(bucket_count: usize) -> *mut Table {
     Box::into_raw(Box::new(Table::new(bucket_count)))
 }
 
 #[no_mangle]
-pub extern "C" fn leem_table_free(table: *mut Table) {
+pub extern "C" fn qed_table_free(table: *mut Table) {
     if !table.is_null() {
         unsafe { drop(Box::from_raw(table)) };
     }
 }
 
 #[no_mangle]
-pub extern "C" fn leem_table_insert(
+pub extern "C" fn qed_table_insert(
     table: *mut Table,
     key_hash: u64,
     key: *mut u8,

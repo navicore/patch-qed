@@ -1,4 +1,4 @@
-/// Parser for leem source code
+/// Parser for qed source code
 ///
 /// Uses logos for lexing and chumsky for parsing.
 
@@ -8,7 +8,7 @@ use anyhow::Result;
 pub mod lexer;
 pub mod grammar;
 
-/// Parse a leem source file into an AST
+/// Parse a qed source file into an AST
 pub fn parse(source: &str) -> Result<Program> {
     // TODO: Implement parsing
     // 1. Tokenize with logos

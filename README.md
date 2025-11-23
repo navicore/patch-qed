@@ -1,10 +1,12 @@
-# leem
+# qed
+
+**Part of the Patch Project** — Fact-based logic programming that compiles to native code.
 
 A typed logic programming language that compiles to fast, native code via LLVM.
 
 ## Overview
 
-**leem** combines the expressiveness of logic programming with the performance of compiled languages. It's designed for building explainable rules engines and fact-based systems where you need:
+**qed** combines the expressiveness of logic programming with the performance of compiled languages. It's designed for building explainable rules engines and fact-based systems where you need:
 
 - **Type safety**: Static typing with algebraic data types
 - **Performance**: Native code via LLVM, no GC, arena allocation
@@ -13,7 +15,7 @@ A typed logic programming language that compiles to fast, native code via LLVM.
 
 ## Example
 
-```leem
+```qed
 type Person = person(name: String, age: Int)
 
 rel parent: Person × Person
@@ -40,7 +42,7 @@ ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
 ## Project Structure
 
 ```
-leem/
+qed/
 ├── src/
 │   ├── ast/         # Abstract syntax tree definitions
 │   ├── parser/      # Lexer and parser (logos + chumsky)
@@ -49,7 +51,7 @@ leem/
 │   ├── codegen/     # LLVM code generation (inkwell)
 │   ├── runtime/     # Runtime support (arena, tables)
 │   └── main.rs      # CLI interface
-├── examples/        # Example leem programs
+├── examples/        # Example qed programs
 ├── DESIGN.md        # Language design document
 └── LLVM_IR.md       # LLVM IR compilation guide
 
@@ -66,17 +68,17 @@ cargo build --release
 ## Usage
 
 ```bash
-# Compile a leem program
-leemc compile program.leem -o program
+# Compile a qed program
+qedc compile program.qed -o program
 
 # Type check only
-leemc check program.leem
+qedc check program.qed
 
 # Show proof tree for a query
-leemc explain program.leem "ancestor(alice, X)"
+qedc explain program.qed "ancestor(alice, X)"
 
 # Start REPL
-leemc repl
+qedc repl
 ```
 
 ## Development Status
@@ -97,7 +99,7 @@ See `DESIGN.md` for the full language specification.
 
 ## Comparison to Other Languages
 
-| Feature | Prolog | Datalog | Mercury | leem |
+| Feature | Prolog | Datalog | Mercury | qed |
 |---------|--------|---------|---------|------|
 | Type System | Dynamic | Dynamic | Static | Static (ADTs) |
 | Compilation | Interpreted | Interpreted | Native | Native (LLVM) |
@@ -118,4 +120,4 @@ MIT
 
 ## Related Projects
 
-- [cem3/ceem](../cem3): Concatenative language with Rust + LLVM
+- [patch-seq](../patch-seq): Concatenative language with Rust + LLVM (sister project under Patch)

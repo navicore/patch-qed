@@ -1,11 +1,11 @@
 [package]
-name = "leem"
+name = "qed"
 version = "0.1.0"
 edition = "2021"
 authors = ["navicore"]
 
 [[bin]]
-name = "leemc"
+name = "qedc"
 path = "src/main.rs"
 
 [dependencies]

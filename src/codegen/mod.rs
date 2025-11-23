@@ -1,6 +1,6 @@
 /// LLVM IR code generation
 ///
-/// This module compiles leem IR to LLVM IR using inkwell.
+/// This module compiles qed IR to LLVM IR using inkwell.
 /// Requires the "llvm" feature to be enabled.
 
 use crate::ir::*;

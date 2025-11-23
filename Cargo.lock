@@ -261,21 +261,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
-name = "leem"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "ariadne",
- "chumsky",
- "clap",
- "codespan-reporting",
- "inkwell",
- "logos",
- "pretty_assertions",
- "thiserror",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.177"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -382,6 +367,21 @@ checksum = "d11f2fedc3b7dafdc2851bc52f277377c5473d378859be234bc7ebb593144d01"
 dependencies = [
  "ar_archive_writer",
  "cc",
+]
+
+[[package]]
+name = "qed"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "ariadne",
+ "chumsky",
+ "clap",
+ "codespan-reporting",
+ "inkwell",
+ "logos",
+ "pretty_assertions",
+ "thiserror",
 ]
 
 [[package]]
