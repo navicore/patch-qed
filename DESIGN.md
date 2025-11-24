@@ -17,6 +17,83 @@ qed is a logic programming language designed for building explainable rules engi
 3. **Performance**: Native code execution, arena allocation, no GC
 4. **Pragmatism**: Not trying to be Prolog - make different choices where it helps
 
+## Implementation Architecture
+
+### Workspace Structure
+
+qed follows the **patch-seq** (formerly cem3) architecture:
+
+```
+qed/
+├── Cargo.toml              # Workspace root
+├── compiler/               # qed-compiler crate
+│   └── src/
+│       ├── main.rs         # qedc CLI
+│       ├── lib.rs          # Compiler API
+│       ├── ast/            # AST definitions
+│       ├── parser/         # Lexer + Parser
+│       ├── types/          # Type checker
+│       ├── ir/             # Intermediate representation
+│       └── codegen.rs      # Text-based LLVM IR generation
+└── runtime/                # qed-runtime crate
+    └── src/lib.rs          # Arena, Tables, FFI exports
+```
+
+### Compilation Pipeline
+
+```
+.qed source → Parse → Type Check → IR Lowering → LLVM IR (.ll)
+                                                      ↓
+                                              clang + libqed_runtime.a
+                                                      ↓
+                                                  executable
+```
+
+### Key Decisions
+
+**1. Text-Based LLVM IR (Not inkwell)**
+- Generate LLVM IR as text strings (`.ll` files)
+- Use `clang` to compile and link
+- Simpler, more portable, easier to debug than FFI bindings
+- Same approach as patch-seq
+
+**2. Concurrency Model: `may` Crate**
+- Erlang-style green threads (CSP concurrency)
+- Chosen over tokio because:
+  - Code sharing with patch-seq
+  - Non-blocking I/O for "batteries included" stdlib (http, json, yaml, fileio)
+  - Future: reactive rules engines, distributed knowledge bases
+  - Scales to millions of lightweight fibers if needed
+- Precedent: Erlang = logic + lightweight processes + non-blocking I/O
+
+**3. Memory Management**
+- `bumpalo` for arena allocation (same as patch-seq)
+- Each query gets its own arena
+- No garbage collection - arenas dropped when query completes
+- Proof tracking optional (can compile out for production)
+
+**4. Runtime as Static Library**
+```toml
+[lib]
+crate-type = ["staticlib", "rlib"]  # staticlib for LLVM, rlib for testing
+```
+- Compiled qed programs link against `libqed_runtime.a`
+- C-compatible FFI exports:
+  - `qed_arena_new()`, `qed_arena_alloc()`, `qed_arena_free()`
+  - `qed_table_new()`, `qed_table_insert()`, `qed_table_free()`
+
+### Integration with Patch Ecosystem
+
+qed is part of the **Patch Project**:
+- **patch-seq**: Concatenative (stack-based) programming
+- **patch-qed**: Logic (fact-based) programming
+
+Both languages:
+- Compile to native code via LLVM (no GC)
+- Share concurrency model (`may`)
+- Share runtime architecture patterns
+- Long-term: Embeddable in Rust, interoperate via Rust
+
 ## Type System
 
 ### Algebraic Data Types
