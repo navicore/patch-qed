@@ -1,12 +1,11 @@
 /// Parser for qed source code
 ///
 /// Uses logos for lexing and chumsky for parsing.
-
 use crate::ast::*;
 use anyhow::Result;
 
-pub mod lexer;
 pub mod grammar;
+pub mod lexer;
 
 /// Parse a qed source file into an AST
 pub fn parse(source: &str) -> Result<Program> {

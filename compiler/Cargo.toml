@@ -1,0 +1,25 @@
+[package]
+name = "qed-compiler"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "qedc"
+path = "src/main.rs"
+
+[dependencies]
+qed-runtime = { path = "../runtime" }
+clap.workspace = true
+logos.workspace = true
+chumsky.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+ariadne.workspace = true
+codespan-reporting.workspace = true
+
+[lib]
+name = "qedc"
+path = "src/lib.rs"
+
+[dev-dependencies]
+pretty_assertions = "1.4"

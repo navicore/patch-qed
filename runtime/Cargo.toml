@@ -1,0 +1,20 @@
+[package]
+name = "qed-runtime"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["staticlib", "rlib"]  # staticlib for LLVM linking, rlib for testing
+
+[dependencies]
+# May - Erlang-style green threads / coroutines for CSP concurrency
+may.workspace = true
+
+# Bumpalo - Fast bump allocation for query-local arenas
+bumpalo.workspace = true
+
+# libc - System call interface
+libc.workspace = true
+
+[dev-dependencies]

@@ -1,7 +1,6 @@
 /// Lexer for qed using logos
 ///
 /// Converts source text into tokens.
-
 use logos::Logos;
 
 #[derive(Logos, Debug, Clone, PartialEq)]

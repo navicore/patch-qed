@@ -5,7 +5,6 @@
 /// - Type inference for terms and goals
 /// - Relation signature checking
 /// - Mode analysis (input/output pattern detection)
-
 use crate::ast::*;
 use anyhow::{anyhow, Result};
 use std::collections::HashMap;
@@ -48,19 +47,18 @@ impl TypeEnv {
 
         // Extract constructor info
         match &def {
-            TypeDefKind::Product { constructor, fields } => {
+            TypeDefKind::Product {
+                constructor,
+                fields,
+            } => {
                 let field_types: Vec<_> = fields.iter().map(|f| f.ty.clone()).collect();
-                self.constructors.insert(
-                    constructor.clone(),
-                    (field_types, name.clone()),
-                );
+                self.constructors
+                    .insert(constructor.clone(), (field_types, name.clone()));
             }
             TypeDefKind::Sum { variants } => {
                 for variant in variants {
-                    self.constructors.insert(
-                        variant.clone(),
-                        (vec![], name.clone()),
-                    );
+                    self.constructors
+                        .insert(variant.clone(), (vec![], name.clone()));
                 }
             }
         }
@@ -103,10 +101,12 @@ impl TypeChecker {
         for item in &program.items {
             match item {
                 Item::TypeDef(typedef) => {
-                    self.env.add_type(typedef.name.clone(), typedef.def.clone())?;
+                    self.env
+                        .add_type(typedef.name.clone(), typedef.def.clone())?;
                 }
                 Item::RelationDecl(rel) => {
-                    self.env.add_relation(rel.name.clone(), rel.signature.clone())?;
+                    self.env
+                        .add_relation(rel.name.clone(), rel.signature.clone())?;
                 }
                 _ => {}
             }
@@ -150,14 +150,15 @@ impl TypeChecker {
     fn infer_term_type(&self, term: &Term, var_env: &HashMap<String, Type>) -> Result<Type> {
         // TODO: Implement type inference for terms
         match term {
-            Term::Var(name, _) => {
-                var_env.get(name)
-                    .cloned()
-                    .ok_or_else(|| anyhow!("Unbound variable: {}", name))
-            }
+            Term::Var(name, _) => var_env
+                .get(name)
+                .cloned()
+                .ok_or_else(|| anyhow!("Unbound variable: {}", name)),
             Term::Int(_, _) => Ok(Type::Named("Int".to_string())),
             Term::String(_, _) => Ok(Type::Named("String".to_string())),
-            Term::Construct { constructor, args, .. } => {
+            Term::Construct {
+                constructor, args, ..
+            } => {
                 // Look up constructor, infer result type
                 todo!("Constructor type inference")
             }

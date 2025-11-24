@@ -1,10 +1,3 @@
-mod ast;
-mod parser;
-mod types;
-mod ir;
-mod codegen;
-mod runtime;
-
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
@@ -93,14 +86,13 @@ fn compile_program(
     input: &PathBuf,
     output: Option<&PathBuf>,
     emit_llvm: bool,
-    opt_level: u8,
+    _opt_level: u8,
 ) -> Result<()> {
-    // TODO: Implement compilation pipeline
-    println!("Compilation not yet implemented");
-    println!("  Input: {:?}", input);
-    println!("  Output: {:?}", output);
-    println!("  Emit LLVM: {}", emit_llvm);
-    println!("  Opt level: {}", opt_level);
+    let output_path = output.cloned().unwrap_or_else(|| input.with_extension(""));
+
+    qedc::compile_file(input, &output_path, emit_llvm).map_err(|e| anyhow::anyhow!(e))?;
+
+    println!("Successfully compiled {:?} -> {:?}", input, output_path);
     Ok(())
 }
 

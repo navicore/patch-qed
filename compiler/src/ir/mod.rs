@@ -6,7 +6,6 @@
 /// - Tabling/memoization points
 /// - Mode information (input/output patterns)
 /// - Memory allocation sites
-
 use crate::ast::Type;
 use std::collections::HashMap;
 
@@ -93,10 +92,7 @@ pub enum IrGoal {
         args: Vec<IrTerm>,
     },
     /// Unify two terms
-    Unify {
-        left: IrTerm,
-        right: IrTerm,
-    },
+    Unify { left: IrTerm, right: IrTerm },
     /// Comparison
     Compare {
         op: CompareOp,
@@ -107,7 +103,12 @@ pub enum IrGoal {
 
 #[derive(Debug, Clone, Copy)]
 pub enum CompareOp {
-    Eq, Ne, Lt, Le, Gt, Ge,
+    Eq,
+    Ne,
+    Lt,
+    Le,
+    Gt,
+    Ge,
 }
 
 /// Terms in IR
@@ -118,10 +119,7 @@ pub enum IrTerm {
     /// Constant value
     Value(IrValue),
     /// Field access
-    FieldAccess {
-        base: Box<IrTerm>,
-        field: String,
-    },
+    FieldAccess { base: Box<IrTerm>, field: String },
     /// Binary operation
     BinOp {
         op: BinOp,
@@ -135,7 +133,11 @@ pub struct VarId(pub usize);
 
 #[derive(Debug, Clone, Copy)]
 pub enum BinOp {
-    Add, Sub, Mul, Div, Mod,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Mod,
 }
 
 /// Ground values in IR
@@ -171,10 +173,7 @@ pub struct IrParam {
 #[derive(Debug, Clone)]
 pub enum IrInstruction {
     /// Allocate in query arena
-    Alloc {
-        dest: VarId,
-        ty: Type,
-    },
+    Alloc { dest: VarId, ty: Type },
     /// Load from memory
     Load {
         dest: VarId,
@@ -188,10 +187,7 @@ pub enum IrInstruction {
         offset: usize,
     },
     /// Unify two variables
-    Unify {
-        left: VarId,
-        right: VarId,
-    },
+    Unify { left: VarId, right: VarId },
     /// Call relation
     Call {
         dest: Option<VarId>,
@@ -218,9 +214,7 @@ pub enum IrInstruction {
         false_block: BlockId,
     },
     /// Return from predicate
-    Return {
-        value: Option<VarId>,
-    },
+    Return { value: Option<VarId> },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

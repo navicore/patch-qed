@@ -1,7 +1,6 @@
 /// Abstract Syntax Tree definitions for qed
 ///
 /// This module defines the AST representation of qed programs after parsing.
-
 use std::fmt;
 
 /// Source location information for error reporting
@@ -124,12 +123,12 @@ pub enum Goal {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CompareOp {
-    Eq,    // ==
-    Ne,    // !=
-    Lt,    // <
-    Le,    // <=
-    Gt,    // >
-    Ge,    // >=
+    Eq, // ==
+    Ne, // !=
+    Lt, // <
+    Le, // <=
+    Gt, // >
+    Ge, // >=
 }
 
 /// Terms that can appear in relations

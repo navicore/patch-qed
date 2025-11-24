@@ -1,10 +1,10 @@
+#![allow(clippy::not_unsafe_ptr_arg_deref)]
+
 /// Runtime support for compiled qed programs
 ///
 /// This module contains runtime data structures and functions that
 /// compiled qed programs link against.
-
 use std::alloc::{alloc, dealloc, Layout};
-use std::collections::HashMap;
 use std::ptr;
 
 /// Arena allocator for query execution
@@ -142,7 +142,11 @@ impl Table {
         self.entry_count += 1;
     }
 
-    pub fn lookup(&self, key_hash: u64, key_eq: impl Fn(*mut u8, *mut u8) -> bool) -> Option<*mut u8> {
+    pub fn lookup(
+        &self,
+        key_hash: u64,
+        _key_eq: impl Fn(*mut u8, *mut u8) -> bool,
+    ) -> Option<*mut u8> {
         let bucket_idx = (key_hash as usize) % self.bucket_count;
 
         unsafe {
@@ -198,9 +202,7 @@ pub extern "C" fn qed_arena_free(arena: *mut Arena) {
 
 #[no_mangle]
 pub extern "C" fn qed_arena_alloc(arena: *mut Arena, size: usize, align: usize) -> *mut u8 {
-    unsafe {
-        (*arena).allocate(size, align)
-    }
+    unsafe { (*arena).allocate(size, align) }
 }
 
 #[no_mangle]
@@ -216,12 +218,7 @@ pub extern "C" fn qed_table_free(table: *mut Table) {
 }
 
 #[no_mangle]
-pub extern "C" fn qed_table_insert(
-    table: *mut Table,
-    key_hash: u64,
-    key: *mut u8,
-    value: *mut u8,
-) {
+pub extern "C" fn qed_table_insert(table: *mut Table, key_hash: u64, key: *mut u8, value: *mut u8) {
     unsafe {
         (*table).insert(key_hash, key, value);
     }
@@ -233,7 +230,7 @@ mod tests {
 
     #[test]
     fn test_arena_creation() {
-        let mut arena = Arena::new(1024);
+        let arena = Arena::new(1024);
         assert_eq!(arena.size, 0);
         assert_eq!(arena.capacity, 1024);
     }

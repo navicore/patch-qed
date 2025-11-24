@@ -1,9 +1,8 @@
+use super::lexer::Token;
 /// Grammar definitions using chumsky parser combinators
 ///
 /// This module contains the parser implementation for qed syntax.
-
 use crate::ast::*;
-use super::lexer::Token;
 
 // TODO: Implement parser combinators with chumsky
 // The parser will be built in stages:
