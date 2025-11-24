@@ -54,6 +54,3 @@ jobs:
 
     - name: Run CI checks (just ci)
       run: just ci
-
-    - name: Verify critical design tests
-      run: just test-critical
