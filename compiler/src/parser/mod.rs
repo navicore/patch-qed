@@ -9,12 +9,28 @@ pub mod lexer;
 
 /// Parse a qed source file into an AST
 pub fn parse(source: &str) -> Result<Program> {
-    // TODO: Implement parsing
-    // 1. Tokenize with logos
-    // 2. Parse with chumsky
-    // 3. Build AST
+    use chumsky::prelude::*;
+    use logos::Logos;
 
-    Ok(Program { items: vec![] })
+    // 1. Tokenize with logos
+    let tokens: Vec<lexer::Token> = lexer::Token::lexer(source)
+        .filter_map(|tok| tok.ok())
+        .collect();
+
+    // 2. Parse with chumsky
+    let program = grammar::program_parser()
+        .parse(&tokens)
+        .into_result()
+        .map_err(|errors| {
+            // Format parse errors nicely
+            let error_msgs: Vec<String> = errors
+                .iter()
+                .map(|e| format!("Parse error: {:?}", e))
+                .collect();
+            anyhow::anyhow!("Parse errors:\n{}", error_msgs.join("\n"))
+        })?;
+
+    Ok(program)
 }
 
 #[cfg(test)]
