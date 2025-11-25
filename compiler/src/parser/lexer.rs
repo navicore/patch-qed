@@ -3,7 +3,7 @@
 /// Converts source text into tokens.
 use logos::Logos;
 
-#[derive(Logos, Debug, Clone, PartialEq)]
+#[derive(Logos, Debug, Clone, PartialEq, Eq, Hash)]
 #[logos(skip r"[ \t\n\f]+")]
 #[logos(skip r"//[^\n]*")]
 #[logos(skip r"/\*([^*]|\*[^/])*\*/")]
