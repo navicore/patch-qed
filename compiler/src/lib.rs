@@ -22,7 +22,7 @@ use std::path::Path;
 use std::process::Command;
 
 /// Compile a .qed source file to an executable
-pub fn compile_file(source_path: &Path, output_path: &Path, keep_ir: bool) -> Result<(), String> {
+pub fn compile_file(source_path: &Path, output_path: &Path, emit_llvm: bool) -> Result<(), String> {
     // Read source file
     let source = fs::read_to_string(source_path)
         .map_err(|e| format!("Failed to read source file: {}", e))?;
@@ -40,7 +40,13 @@ pub fn compile_file(source_path: &Path, output_path: &Path, keep_ir: bool) -> Re
     let mut codegen = CodeGen::new();
     let ir = codegen.codegen_program(&program)?;
 
-    // Write IR to file
+    // If emit_llvm is true, just write the IR and stop
+    if emit_llvm {
+        fs::write(output_path, ir).map_err(|e| format!("Failed to write IR file: {}", e))?;
+        return Ok(());
+    }
+
+    // Write IR to temporary file
     let ir_path = output_path.with_extension("ll");
     fs::write(&ir_path, ir).map_err(|e| format!("Failed to write IR file: {}", e))?;
 
@@ -70,10 +76,8 @@ pub fn compile_file(source_path: &Path, output_path: &Path, keep_ir: bool) -> Re
         return Err(format!("Clang compilation failed:\n{}", stderr));
     }
 
-    // Remove temporary IR file unless user wants to keep it
-    if !keep_ir {
-        fs::remove_file(&ir_path).ok();
-    }
+    // Remove temporary IR file
+    fs::remove_file(&ir_path).ok();
 
     Ok(())
 }
