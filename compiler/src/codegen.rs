@@ -12,6 +12,9 @@ use std::fmt::{self, Write as _};
 /// Result type for code generation operations
 type CodeGenResult = Result<(), fmt::Error>;
 
+/// Default arena size in bytes (1 MB)
+const DEFAULT_ARENA_SIZE: u64 = 1024 * 1024;
+
 pub struct CodeGen {
     output: String,
     string_counter: usize,
@@ -84,7 +87,8 @@ impl CodeGen {
         Ok(())
     }
 
-    /// Detect the target triple for the current platform
+    /// Detect the target triple for the current platform.
+    /// Supported platforms: macOS (arm64, x86_64), Linux (x86_64, aarch64)
     fn detect_target_triple() -> &'static str {
         #[cfg(all(target_arch = "aarch64", target_os = "macos"))]
         {
@@ -109,8 +113,10 @@ impl CodeGen {
             all(target_arch = "aarch64", target_os = "linux"),
         )))]
         {
-            // Fallback for other platforms
-            "unknown-unknown-unknown"
+            compile_error!(
+                "Unsupported platform. QED compiler supports: \
+                 macOS (arm64, x86_64), Linux (x86_64, aarch64)"
+            );
         }
     }
 
@@ -188,7 +194,7 @@ impl CodeGen {
                 // Generate tagged union
                 writeln!(
                     self.output,
-                    "%enum.{} = type {{ i{}, [{}  x i8] }}  ; variants: {:?}",
+                    "%enum.{} = type {{ i{}, [{} x i8] }}  ; variants: {:?}",
                     typedef.name,
                     tag_size * 8,
                     max_variant_size,
@@ -237,7 +243,7 @@ impl CodeGen {
 
         // Emit facts as global data
         if !relation.facts.is_empty() {
-            self.emit_facts_data(&relation.name, &relation.facts, flat_arity)?;
+            self.emit_facts_data(&relation.name, &relation.facts)?;
         }
 
         // Emit the relation function that searches facts
@@ -247,12 +253,7 @@ impl CodeGen {
         Ok(())
     }
 
-    fn emit_facts_data(
-        &mut self,
-        rel_name: &str,
-        facts: &[IrFact],
-        _arity: usize,
-    ) -> CodeGenResult {
+    fn emit_facts_data(&mut self, rel_name: &str, facts: &[IrFact]) -> CodeGenResult {
         // Emit each fact as a global constant
         // Flatten struct fields so all values are compared properly
         for (i, fact) in facts.iter().enumerate() {
@@ -265,7 +266,7 @@ impl CodeGen {
 
             writeln!(
                 self.output,
-                "@{}_fact_{} = private constant [{}  x i64] [{}]",
+                "@{}_fact_{} = private constant [{} x i64] [{}]",
                 rel_name,
                 i,
                 flat_arity,
@@ -280,7 +281,7 @@ impl CodeGen {
 
         writeln!(
             self.output,
-            "@{}_facts = private constant [{}  x ptr] [{}]",
+            "@{}_facts = private constant [{} x ptr] [{}]",
             rel_name,
             facts.len(),
             fact_ptrs.join(", ")
@@ -359,7 +360,7 @@ impl CodeGen {
             writeln!(self.output, "check:")?;
             writeln!(
                 self.output,
-                "  %fact_ptr = getelementptr [{}  x ptr], ptr @{}_facts, i64 0, i64 %i",
+                "  %fact_ptr = getelementptr [{} x ptr], ptr @{}_facts, i64 0, i64 %i",
                 relation.facts.len(),
                 relation.name
             )?;
@@ -369,7 +370,7 @@ impl CodeGen {
             for arg_idx in 0..arity {
                 writeln!(
                     self.output,
-                    "  %val{} = getelementptr [{}  x i64], ptr %fact, i64 0, i64 {}",
+                    "  %val{} = getelementptr [{} x i64], ptr %fact, i64 0, i64 {}",
                     arg_idx, arity, arg_idx
                 )?;
                 writeln!(
@@ -386,7 +387,8 @@ impl CodeGen {
 
             // Combine all matches with AND
             if arity == 0 {
-                // Zero-arity relation: fact always matches (no arguments to check)
+                // Zero-arity relation: if we reach the check block, a fact exists
+                // and matches trivially (no arguments to compare)
                 writeln!(self.output, "  br label %success")?;
             } else if arity == 1 {
                 writeln!(self.output, "  br i1 %match0, label %success, label %next")?;
@@ -409,9 +411,12 @@ impl CodeGen {
                 )?;
             }
 
-            writeln!(self.output, "next:")?;
-            writeln!(self.output, "  %next_i = add i64 %i, 1")?;
-            writeln!(self.output, "  br label %loop")?;
+            // Only emit 'next' block if arity > 0 (zero-arity never falls through)
+            if arity > 0 {
+                writeln!(self.output, "next:")?;
+                writeln!(self.output, "  %next_i = add i64 %i, 1")?;
+                writeln!(self.output, "  br label %loop")?;
+            }
 
             writeln!(self.output, "success:")?;
             writeln!(self.output, "  ret i32 1")?;
@@ -460,8 +465,12 @@ impl CodeGen {
                         args,
                         ..
                     } => {
-                        let arg_values: Vec<String> =
-                            args.iter().map(|_| "i64 0".to_string()).collect();
+                        // Convert terms to flattened i64 values
+                        let arg_values: Vec<String> = args
+                            .iter()
+                            .flat_map(|arg| self.emit_term_to_i64s(arg))
+                            .map(|v| format!("i64 {}", v))
+                            .collect();
 
                         writeln!(
                             self.output,
@@ -497,7 +506,8 @@ impl CodeGen {
                         }
                     }
                     IrGoal::Unify { .. } | IrGoal::Compare { .. } => {
-                        // For now, skip unification and comparison goals
+                        // TODO: Implement unification and comparison goals
+                        // For now, skip these goals (they will always succeed)
                         writeln!(
                             self.output,
                             "  ; TODO: handle unify/compare in rule {}, goal {}",
@@ -619,7 +629,8 @@ impl CodeGen {
         // Initialize arena
         writeln!(
             self.output,
-            "  %arena = call ptr @qed_arena_new(i64 1048576)  ; 1MB arena"
+            "  %arena = call ptr @qed_arena_new(i64 {})  ; {} bytes",
+            DEFAULT_ARENA_SIZE, DEFAULT_ARENA_SIZE
         )?;
 
         // Execute each query and print result
@@ -818,7 +829,7 @@ mod tests {
         assert!(ir_text.contains("define i32 @parent(i64 %arg0, i64 %arg1, i64 %arg2, i64 %arg3)"));
 
         // The fact should have 4 flattened values
-        assert!(ir_text.contains("[4  x i64]"));
+        assert!(ir_text.contains("[4 x i64]"));
 
         // All 4 matches should be combined
         assert!(ir_text.contains("%match0"));
