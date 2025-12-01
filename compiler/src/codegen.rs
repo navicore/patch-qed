@@ -390,7 +390,12 @@ impl CodeGen {
             }
 
             // Combine all matches with AND
-            if arity > 1 {
+            if arity == 0 {
+                // Zero-arity relation: fact always matches (no arguments to check)
+                writeln!(self.output, "  br label %success").unwrap();
+            } else if arity == 1 {
+                writeln!(self.output, "  br i1 %match0, label %success, label %next").unwrap();
+            } else {
                 writeln!(self.output, "  %match_all_1 = and i1 %match0, %match1").unwrap();
                 let mut prev_match = "%match_all_1".to_string();
                 for arg_idx in 2..arity {
@@ -409,8 +414,6 @@ impl CodeGen {
                     prev_match
                 )
                 .unwrap();
-            } else {
-                writeln!(self.output, "  br i1 %match0, label %success, label %next").unwrap();
             }
 
             writeln!(self.output, "next:").unwrap();
@@ -804,5 +807,66 @@ mod tests {
 
         let ir_text = ir.unwrap();
         assert!(ir_text.contains("define i32 @query_0"));
+    }
+
+    #[test]
+    fn test_codegen_struct_flattening() {
+        use crate::parser;
+
+        // Test that struct fields are properly flattened for comparison
+        let source = r#"
+            type Person = person(name: String, age: Int)
+            rel parent: Person × Person
+            parent(person("Alice", 45), person("Bob", 20)).
+            ?- parent(person("Alice", 45), person("Bob", 20)).
+        "#;
+        let program = parser::parse(source).expect("Parse failed");
+
+        let mut codegen = CodeGen::new();
+        let ir = codegen.codegen_program(&program);
+        assert!(ir.is_ok());
+
+        let ir_text = ir.unwrap();
+
+        // The relation should take 4 args (2 structs × 2 fields each)
+        assert!(ir_text.contains("define i32 @parent(i64 %arg0, i64 %arg1, i64 %arg2, i64 %arg3)"));
+
+        // The fact should have 4 flattened values
+        assert!(ir_text.contains("[4  x i64]"));
+
+        // All 4 matches should be combined
+        assert!(ir_text.contains("%match0"));
+        assert!(ir_text.contains("%match1"));
+        assert!(ir_text.contains("%match2"));
+        assert!(ir_text.contains("%match3"));
+        assert!(ir_text.contains("%match_all_3"));
+    }
+
+    #[test]
+    fn test_codegen_string_deduplication() {
+        use crate::parser;
+
+        // Test that identical strings are deduplicated
+        let source = r#"
+            type Person = person(name: String, age: Int)
+            rel parent: Person × Person
+            parent(person("Alice", 45), person("Bob", 20)).
+            ?- parent(person("Alice", 45), person("Bob", 20)).
+        "#;
+        let program = parser::parse(source).expect("Parse failed");
+
+        let mut codegen = CodeGen::new();
+        let ir = codegen.codegen_program(&program);
+        assert!(ir.is_ok());
+
+        let ir_text = ir.unwrap();
+
+        // "Alice" should only appear once as a constant
+        let alice_count = ir_text.matches("c\"Alice").count();
+        assert_eq!(alice_count, 1, "String 'Alice' should be deduplicated");
+
+        // "Bob" should only appear once as a constant
+        let bob_count = ir_text.matches("c\"Bob").count();
+        assert_eq!(bob_count, 1, "String 'Bob' should be deduplicated");
     }
 }
