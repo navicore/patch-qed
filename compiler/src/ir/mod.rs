@@ -372,11 +372,18 @@ impl IrLowering {
                 type_name: constructor.clone(),
                 fields: args.iter().map(Self::lower_term_to_value).collect(),
             },
-            crate::ast::Term::Var(_, _) => {
-                panic!("Variables should not appear in facts")
+            crate::ast::Term::Var(name, _) => {
+                // Type checker should have caught this
+                unreachable!(
+                    "Variable '{}' should not appear in facts - this is a type checker bug",
+                    name
+                )
             }
             crate::ast::Term::BinOp { .. } => {
-                panic!("Binary ops in facts should be pre-evaluated")
+                // Type checker should have caught this
+                unreachable!(
+                    "Binary ops in facts should be pre-evaluated - this is a type checker bug"
+                )
             }
         }
     }
