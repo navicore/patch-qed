@@ -1,3 +1,8 @@
+<!-- ghmig:moved -->
+> **This repository has moved to [https://git.navicore.tech/navicore/patch-qed](https://git.navicore.tech/navicore/patch-qed).**
+>
+> The GitHub copy is archived and no longer maintained.
+
 # qed
 
 **Part of the Patch Project** — Fact-based logic programming that compiles to native code.
